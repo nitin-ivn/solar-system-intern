@@ -6,7 +6,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Pane } from "tweakpane";
-import { min } from "three/tsl";
+import textures from "./textures";
+import planets from "./planetData";
 
 const BLOOM_SCENE = 1;
 
@@ -17,80 +18,15 @@ const pane = new Pane();
 
 const scene = new THREE.Scene();
 
-const textureLoader = new THREE.TextureLoader();
-const cubeTextureLoader = new THREE.CubeTextureLoader();
-cubeTextureLoader.setPath('/textures/cubeMap/')
-
-const sunTexture = textureLoader.load("/textures/2k_sun.jpg");
-sunTexture.colorSpace = THREE.SRGBColorSpace  
-const mercuryTexture = textureLoader.load("/textures/2k_mercury.jpg");
-mercuryTexture.colorSpace = THREE.SRGBColorSpace
-const venusTexture = textureLoader.load("/textures/2k_venus_surface.jpg");
-venusTexture.colorSpace = THREE.SRGBColorSpace
-const earthTexture = textureLoader.load("/textures/2k_earth_daymap.jpg");
-earthTexture.colorSpace = THREE.SRGBColorSpace
-const marsTexture = textureLoader.load("/textures/2k_mars.jpg");
-marsTexture.colorSpace = THREE.SRGBColorSpace
-const moonTexture = textureLoader.load("/textures/2k_moon.jpg");
-moonTexture.colorSpace = THREE.SRGBColorSpace
-const jupiterTexture = textureLoader.load("/textures/8k_jupiter.jpg");
-jupiterTexture.colorSpace = THREE.SRGBColorSpace
-const saturnTexture = textureLoader.load("/textures/8k_saturn.jpg");
-saturnTexture.colorSpace = THREE.SRGBColorSpace;
-const uranusTexture = textureLoader.load("/textures/2k_uranus.jpg");
-uranusTexture.colorSpace = THREE.SRGBColorSpace;
-const neptuneTexture = textureLoader.load("/textures/2k_neptune.jpg");
-neptuneTexture.colorSpace = THREE.SRGBColorSpace; //8k_saturn_ring_alpha
-const ringTexture = textureLoader.load("/textures/radial_saturn_ring.png");
-ringTexture.colorSpace = THREE.SRGBColorSpace;
+scene.background = textures.backgroundCubemap
 
 
-
-
-const backgroundCubemap = cubeTextureLoader
-.load( [
-  'px.png',
-  'nx.png',
-  'py.png',
-  'ny.png',
-  'pz.png',
-  'nz.png'
-] );
-
-scene.background = backgroundCubemap
-
-const mercuryMaterial = new THREE.MeshStandardMaterial({
-  map:mercuryTexture
-})
-const venusMaterial = new THREE.MeshStandardMaterial({
-  map: venusTexture,
-});
-const earthMaterial = new THREE.MeshStandardMaterial({
-  map: earthTexture, 
-});
-const marsMaterial = new THREE.MeshStandardMaterial({
-  map: marsTexture,
-});
 const moonMaterial = new THREE.MeshStandardMaterial({
-  map: moonTexture,
-});
-
-const jupiterMaterial = new THREE.MeshStandardMaterial({
-  map: jupiterTexture,
-})
-
-const saturnMaterial = new THREE.MeshStandardMaterial({ 
-  map: saturnTexture 
-});
-const uranusMaterial = new THREE.MeshStandardMaterial({ 
-  map: uranusTexture 
-});
-const neptuneMaterial = new THREE.MeshStandardMaterial({ 
-  map: neptuneTexture 
+  map: textures.moonTexture,
 });
 
 const ringMaterial = new THREE.MeshBasicMaterial({
-  map: ringTexture,
+  map: textures.ringTexture,
   // color: 'gray',
   side: THREE.DoubleSide,
   transparent: true,
@@ -104,11 +40,11 @@ const ringGeometry = new THREE.RingGeometry(2,3,64);
 const ringMesh = new THREE.Mesh(ringGeometry,ringMaterial);
 ringMesh.rotation.x = -Math.PI / 2;
 
-const sunMaterial = new THREE.MeshBasicMaterial({map:sunTexture})
+const sunMaterial = new THREE.MeshBasicMaterial({map:textures.sunTexture})
 
 const params = {
-  threshold: 0.6,
-  strength: 1,
+  threshold: 0.8,
+  strength: 0.5,
   radius: 0,
   exposure: 0
 };
@@ -119,147 +55,6 @@ const sun = new THREE.Mesh(
 )
 sun.scale.setScalar(13);
 sun.layers.enable(BLOOM_SCENE);
-
-
-const planets = [
-  {
-    name: "Mercury",
-    radius: 1,
-    distance: 25,
-    speed: 0.01,
-    material: mercuryMaterial,
-    moons: [],
-  },
-  {
-    name: "Venus",
-    radius: 1.6,
-    distance: 35,
-    speed: 0.007,
-    material: venusMaterial,
-    moons: [],
-  },
-  {
-    name: "Earth",
-    radius: 2,
-    distance: 45,
-    speed: 0.005,
-    material: earthMaterial,
-    moons: [
-      {
-        name: "Moon",
-        radius: 0.3,
-        distance: 3,
-        speed: 0.015,
-      },
-    ],
-  },
-  {
-    name: "Mars",
-    radius: 1.4,
-    distance: 55,
-    speed: 0.003,
-    material: marsMaterial,
-    moons: [
-      {
-        name: "Phobos",
-        radius: 0.2,
-        distance: 2,
-        speed: 0.02,
-      },
-      {
-        name: "Deimos",
-        radius: 0.4,
-        distance: 3,
-        speed: 0.015,
-        color: 0xffffff,
-      },
-    ],
-  },
-  {
-    name: "Jupiter",
-    radius: 7,
-    distance: 80,
-    speed : 0.002,
-    material : jupiterMaterial,
-    moons: [
-      {
-        name: "Io",
-        radius: 0.2,
-        distance: 2,
-        speed: 0.015,
-      },
-      {
-        name: "Europa",
-        radius: 0.1,
-        distance: 2.5,
-        speed: 0.009,
-      },
-      {
-        name: "Ganymede",
-        radius: 0.09,
-        distance: 3,
-        speed: 0.01,
-      },
-    ]
-  },
-  {
-  name: "Saturn",
-  radius: 6,
-  distance: 130,
-  speed: 0.0017,
-  material: saturnMaterial,
-  moons: [
-    {
-      name: "Titan",
-      radius: 0.25,
-      distance: 3,
-      speed: 0.008,
-    },
-    {
-      name: "Enceladus",
-      radius: 0.2,
-      distance: 2,
-      speed: 0.01,
-    },
-  ],
-  },
-  {
-  name: "Uranus",
-  radius: 4.5,
-  distance: 160,
-  speed: 0.0012,
-  material: uranusMaterial,
-  moons: [
-    {
-      name: "Titania",
-      radius: 0.4,
-      distance: 2,
-      speed: 0.008,
-    },
-    {
-      name: "Oberon",
-      radius: 0.3,
-      distance: 3,
-      speed: 0.007,
-    },
-  ],
-  },
-  {
-    name: "Neptune",
-    radius: 4.4,
-    distance: 195,
-    speed: 0.001,
-    material: neptuneMaterial,
-    moons: [
-      {
-        name: "Triton",
-        radius: 0.5,
-        distance: 2,
-        speed: 0.008,
-      },
-    ],
-  },
-]; 
 
 
 
