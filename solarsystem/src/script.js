@@ -14,10 +14,9 @@ const BLOOM_SCENE = 1;
 const bloomLayer = new THREE.Layers();
 bloomLayer.set(BLOOM_SCENE);
 
-const pane = new Pane();
-
 const scene = new THREE.Scene();
 
+//background of canvas
 scene.background = textures.backgroundCubemap
 
 
@@ -25,6 +24,7 @@ const moonMaterial = new THREE.MeshStandardMaterial({
   map: textures.moonTexture,
 });
 
+//saturn rings
 const ringMaterial = new THREE.MeshBasicMaterial({
   map: textures.ringTexture,
   // color: 'gray',
@@ -34,14 +34,18 @@ const ringMaterial = new THREE.MeshBasicMaterial({
   depthWrite: true
 })
 
+//geometry for all planets
 const sphereGeometry = new THREE.SphereGeometry(1,32,32);
 
+//saturn ring geometry and mesh
 const ringGeometry = new THREE.RingGeometry(2,3,64);
 const ringMesh = new THREE.Mesh(ringGeometry,ringMaterial);
 ringMesh.rotation.x = -Math.PI / 2;
+ringMesh.rotation.y = -Math.PI/ 6;
 
 const sunMaterial = new THREE.MeshBasicMaterial({map:textures.sunTexture})
 
+//params for sun shining properties
 const params = {
   threshold: 0.7,
   strength: 0.5,
@@ -49,6 +53,7 @@ const params = {
   exposure: 0
 };
 
+//sun
 const sun = new THREE.Mesh(
   sphereGeometry,
   sunMaterial
@@ -61,6 +66,7 @@ sun.layers.enable(BLOOM_SCENE);
 
 scene.add(sun)
 
+//create planet meshes
 const createPlanet = (planet) => {
   const planetMesh = new THREE.Mesh(
     sphereGeometry,
@@ -72,6 +78,7 @@ const createPlanet = (planet) => {
   return planetMesh;
 }
 
+//moons for all planets
 const createMoon = (moon) => {
   const moonMesh = new THREE.Mesh(
       sphereGeometry,
@@ -84,6 +91,7 @@ const createMoon = (moon) => {
     return moonMesh;
 }
 
+//orbit rings of all planets
 const createOrbitRing = (radius) => {
   const segments = 128;
   const points = [];
@@ -106,7 +114,7 @@ const createOrbitRing = (radius) => {
   return line;
 };
 
-
+//function to create planet meshes and add it into scene
 const planetMeshes = planets.map((planet) => {
   const planetMesh = createPlanet(planet);
   scene.add(planetMesh);
@@ -126,6 +134,7 @@ const planetMeshes = planets.map((planet) => {
   return planetMesh;
 })
 
+//camera
 const camera = new THREE.PerspectiveCamera(
   35,
   window.innerWidth / window.innerHeight,
@@ -136,6 +145,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.z = 400;
 camera.position.y = 200;
 
+//renderer
 const canvas = document.querySelector("canvas.threejs");
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -143,45 +153,51 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const renderScene = new RenderPass(scene, camera);
 
+//sun shining effect
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
   params.strength,
   params.radius,
   params.threshold
 );
-
 const outputPass = new OutputPass();
-
 const composer = new EffectComposer(renderer);
 composer.addPass(renderScene);
 composer.addPass(bloomPass);
 composer.addPass(outputPass);
 
-
+//camera movement
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.maxDistance = 800;
 controls.minDistance = 20
 
+//responsiveness
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+//light helper to not make it too dark
 const ambientLight = new THREE.AmbientLight(0xffffff,0.01);
 scene.add(ambientLight)
 
+//light pointing from sun
 const pointerLight = new THREE.PointLight(
   0xffffff,
   10000 
 )
 scene.add(pointerLight);
 
+//speed array
 const speedOfPlanets = {};
 planets.forEach((planet) => {
   speedOfPlanets[planet.name] = 1;
 })
+
+//bindings for all planet speeds
+const pane = new Pane();
 
 Object.keys(speedOfPlanets).forEach((name) => {
   pane.addBinding(speedOfPlanets,name, {

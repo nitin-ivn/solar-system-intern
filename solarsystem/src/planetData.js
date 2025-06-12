@@ -1,6 +1,8 @@
 import textures from "./textures";
 import * as THREE from 'three'
 
+
+//Materials for all planets
 const mercuryMaterial = new THREE.MeshStandardMaterial({
   map:textures.mercuryTexture,
 })
@@ -29,7 +31,7 @@ const neptuneMaterial = new THREE.MeshStandardMaterial({
 });
 
 
-
+//planet data
 const planets = [
   {
     name: "Mercury",

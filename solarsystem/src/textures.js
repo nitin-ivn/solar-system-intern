@@ -1,9 +1,13 @@
 import * as THREE from 'three';
 
+
+//texture loader
 const textureLoader = new THREE.TextureLoader();
 const cubeTextureLoader = new THREE.CubeTextureLoader();
 cubeTextureLoader.setPath('/textures/cubeMap/');
 
+
+//textures for all planets and background
 const textures = {
     sunTexture : textureLoader.load("/textures/2k_sun.jpg"),
     mercuryTexture : textureLoader.load("/textures/2k_mercury.jpg"),
