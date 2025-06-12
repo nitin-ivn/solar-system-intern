@@ -6,6 +6,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Pane } from "tweakpane";
+import { min } from "three/tsl";
 
 const BLOOM_SCENE = 1;
 
@@ -39,11 +40,10 @@ saturnTexture.colorSpace = THREE.SRGBColorSpace;
 const uranusTexture = textureLoader.load("/textures/2k_uranus.jpg");
 uranusTexture.colorSpace = THREE.SRGBColorSpace;
 const neptuneTexture = textureLoader.load("/textures/2k_neptune.jpg");
-neptuneTexture.colorSpace = THREE.SRGBColorSpace;
-const ringTexture = textureLoader.load("/textures/8k_saturn_ring_alpha.png");
+neptuneTexture.colorSpace = THREE.SRGBColorSpace; //8k_saturn_ring_alpha
+const ringTexture = textureLoader.load("/textures/radial_saturn_ring.png");
 ringTexture.colorSpace = THREE.SRGBColorSpace;
 
-console.log(jupiterTexture);
 
 
 
@@ -89,15 +89,18 @@ const neptuneMaterial = new THREE.MeshStandardMaterial({
   map: neptuneTexture 
 });
 
-const ringMaterial = new THREE.MeshStandardMaterial({
+const ringMaterial = new THREE.MeshBasicMaterial({
   map: ringTexture,
+  // color: 'gray',
   side: THREE.DoubleSide,
-  transparent:true,
+  transparent: true,
+  alphaTest: 0.1,
+  depthWrite: true
 })
 
 const sphereGeometry = new THREE.SphereGeometry(1,32,32);
 
-const ringGeometry = new THREE.RingGeometry(6,10,64);
+const ringGeometry = new THREE.RingGeometry(2,3,64);
 const ringMesh = new THREE.Mesh(ringGeometry,ringMaterial);
 ringMesh.rotation.x = -Math.PI / 2;
 
@@ -208,14 +211,14 @@ const planets = [
   moons: [
     {
       name: "Titan",
-      radius: 0.1,
+      radius: 0.25,
       distance: 3,
       speed: 0.008,
     },
     {
       name: "Enceladus",
       radius: 0.2,
-      distance: 1,
+      distance: 2,
       speed: 0.01,
     },
   ],
@@ -268,14 +271,13 @@ const createPlanet = (planet) => {
     sphereGeometry,
     planet.material
   )
-  planetMesh.add(ringMesh);
 
   planetMesh.scale.setScalar(planet.radius);
   planetMesh.position.x = planet.distance;
   return planetMesh;
 }
 
-const createMoon =(moon) => {
+const createMoon = (moon) => {
   const moonMesh = new THREE.Mesh(
       sphereGeometry,
       moonMaterial
@@ -283,6 +285,7 @@ const createMoon =(moon) => {
 
     moonMesh.scale.setScalar(moon.radius);
     moonMesh.position.x = moon.distance;
+    moonMesh.userData.isMoon = true;
     return moonMesh;
 }
 
@@ -320,6 +323,11 @@ const planetMeshes = planets.map((planet) => {
     const moonMesh = createMoon(moon);
     planetMesh.add(moonMesh);
   })
+
+  if(planet.name == 'Saturn'){
+    planetMesh.add(ringMesh);
+  }
+
   return planetMesh;
 })
 
@@ -372,19 +380,33 @@ const pointerLight = new THREE.PointLight(
   0xffffff,
   10000 
 )
-scene.add(pointerLight)
+scene.add(pointerLight);
+
+const speedOfPlanets = {};
+planets.forEach((planet) => {
+  speedOfPlanets[planet.name] = 1;
+})
+
+Object.keys(speedOfPlanets).forEach((name) => {
+  pane.addBinding(speedOfPlanets,name, {
+    min: 0,
+    max: 10,
+    label : name,
+  })
+})
 
 const renderloop = () => {
   planetMeshes.forEach((planet,index) => {
-    console.log(planets[index].speed);
-    planet.rotation.y += planets[index].speed;
+    planet.rotation.y += planets[index].speed * speedOfPlanets[planets[index].name];
     planet.position.x = Math.sin(planet.rotation.y) * planets[index].distance;
     planet.position.z = Math.cos(planet.rotation.y) * planets[index].distance;
   
     planet.children.forEach((moon,moonIndex) => {
-      moon.rotation.y += planets[index].moons[moonIndex].speed;
-      moon.position.x = Math.sin(moon.rotation.y) * planets[index].moons[moonIndex].distance
-      moon.position.z = Math.cos(moon.rotation.y) * planets[index].moons[moonIndex].distance
+      if(moon.userData.isMoon){
+        moon.rotation.y += planets[index].moons[moonIndex].speed;
+        moon.position.x = Math.sin(moon.rotation.y) * planets[index].moons[moonIndex].distance
+        moon.position.z = Math.cos(moon.rotation.y) * planets[index].moons[moonIndex].distance
+      }
     })
   
   })
