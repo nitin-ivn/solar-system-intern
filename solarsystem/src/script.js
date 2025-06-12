@@ -43,7 +43,7 @@ ringMesh.rotation.x = -Math.PI / 2;
 const sunMaterial = new THREE.MeshBasicMaterial({map:textures.sunTexture})
 
 const params = {
-  threshold: 0.8,
+  threshold: 0.7,
   strength: 0.5,
   radius: 0,
   exposure: 0
@@ -132,8 +132,9 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 300;
-camera.position.y = 10;
+
+camera.position.z = 400;
+camera.position.y = 200;
 
 const canvas = document.querySelector("canvas.threejs");
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -190,8 +191,22 @@ Object.keys(speedOfPlanets).forEach((name) => {
   })
 })
 
+let revolve = true;
+
+const pauseButton = document.querySelector(".pause");
+pauseButton.addEventListener('click', () => {
+  revolve = !revolve;
+  if(revolve){
+    pauseButton.innerHTML = 'Pause'
+  }else{
+    pauseButton.innerHTML = 'Play'
+  }
+})
+
+
 const renderloop = () => {
-  planetMeshes.forEach((planet,index) => {
+  if(revolve){
+    planetMeshes.forEach((planet,index) => {
     planet.rotation.y += planets[index].speed * speedOfPlanets[planets[index].name];
     planet.position.x = Math.sin(planet.rotation.y) * planets[index].distance;
     planet.position.z = Math.cos(planet.rotation.y) * planets[index].distance;
@@ -203,8 +218,8 @@ const renderloop = () => {
         moon.position.z = Math.cos(moon.rotation.y) * planets[index].moons[moonIndex].distance
       }
     })
-  
   })
+  }
 
   controls.update();
   composer.render(scene, camera);

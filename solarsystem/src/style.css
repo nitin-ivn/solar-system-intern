@@ -2,4 +2,13 @@ body {
     margin: 0;
     overflow: hidden;
   }
+
+.pause{
+  position: absolute;
+  left: 10px;
+  top: 20px;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
   
